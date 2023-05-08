@@ -290,7 +290,7 @@ class Renderer: NSObject, MTKViewDelegate {
         uniformBufferOffset = uniformsCombinedSize * uniformBufferIndex
     }
     
-    private func updateGameState() {
+    private func updateGameState(dynamicUniformBuffer: MTLBuffer, uniformBufferOffset: Int) {
         /// Update any game state before rendering
         
         uniformsPV = UnsafeMutableRawPointer(dynamicUniformBuffer.contents() + uniformBufferOffset).bindMemory(to:UniformsPV.self, capacity:1)
@@ -325,15 +325,19 @@ class Renderer: NSObject, MTKViewDelegate {
         rotation += 0.015
     }
     
-    private func draw(renderEncoder: MTLRenderCommandEncoder, viewport: MTLViewport, primitiveType: MTLPrimitiveType? = nil) {
+    private func draw(renderEncoder: MTLRenderCommandEncoder,
+                      viewport: MTLViewport,
+                      dynamicUniformBuffer: MTLBuffer,
+                      uniformBufferOffset: Int,
+                      primitiveType: MTLPrimitiveType? = nil) {
         renderEncoder.setViewport(viewport)
         let textures = [colorMap0, colorMap1]
         for x in 0..<2 {
             renderEncoder.setVertexBuffer(dynamicUniformBuffer,
-                                          offset:uniformBufferOffset + uniformMOffset + uniformsMstride * x,
+                                          offset: uniformBufferOffset + uniformMOffset + uniformsMstride * x,
                                           index: BufferIndex.uniformsM.rawValue)
             renderEncoder.setFragmentBuffer(dynamicUniformBuffer,
-                                            offset:uniformBufferOffset + uniformMOffset + uniformsMstride * x,
+                                            offset: uniformBufferOffset + uniformMOffset + uniformsMstride * x,
                                             index: BufferIndex.uniformsM.rawValue)
             
             for (index, element) in meshes[x].vertexDescriptor.layouts.enumerated() {
@@ -362,6 +366,14 @@ class Renderer: NSObject, MTKViewDelegate {
     
     func draw(in view: MTKView, commandQueue: MTLCommandQueue, renderPassDescriptor: MTLRenderPassDescriptor?) {
         GZLogFunc()
+        let uniformBufferSize = uniformsCombinedSize
+        guard let buffer = self.device.makeBuffer(length:uniformBufferSize, options:[MTLResourceOptions.storageModeShared]) else {
+            GZLogFunc("Failed to make buffer.")
+            return
+        }
+        let dynamicUniformBuffer: MTLBuffer = buffer
+        dynamicUniformBuffer.label = "UniformBuffer for offscreen"
+ 
         /// Per frame updates hare
         var pipelineState: MTLRenderPipelineState
         var pipelineStateLine: MTLRenderPipelineState
@@ -389,9 +401,7 @@ class Renderer: NSObject, MTKViewDelegate {
  
         if let commandBuffer = commandQueue.makeCommandBuffer() {
             
-            self.updateDynamicBufferState()
-            
-            self.updateGameState()
+            self.updateGameState(dynamicUniformBuffer: dynamicUniformBuffer, uniformBufferOffset: 0)
             
             /// Delay getting the currentRenderPassDescriptor until we absolutely need it to avoid
             ///   holding onto the drawable and blocking the display pipeline any longer than necessary
@@ -423,12 +433,16 @@ class Renderer: NSObject, MTKViewDelegate {
                 for x in 0..<4 {
                     renderEncoder.setRenderPipelineState(pipelines[x])
                     renderEncoder.setVertexBuffer(dynamicUniformBuffer,
-                                                  offset:uniformBufferOffset + uniformsPVstride * x,
+                                                  offset: uniformsPVstride * x,
                                                   index: BufferIndex.uniformsPV.rawValue)
                     renderEncoder.setFragmentBuffer(dynamicUniformBuffer,
-                                                    offset:uniformBufferOffset + uniformsPVstride * x,
+                                                    offset: uniformsPVstride * x,
                                                     index: BufferIndex.uniformsPV.rawValue)
-                    draw(renderEncoder: renderEncoder, viewport: viewports[x], primitiveType: primitives[x])
+                    draw(renderEncoder: renderEncoder,
+                         viewport: viewports[x],
+                         dynamicUniformBuffer: dynamicUniformBuffer,
+                         uniformBufferOffset: 0,
+                         primitiveType: primitives[x])
                 }
                 
                 renderEncoder.popDebugGroup()
@@ -436,7 +450,6 @@ class Renderer: NSObject, MTKViewDelegate {
             }
             commandBuffer.commit()
             commandBuffer.waitUntilCompleted()
-            GZLogFunc()
         }
     }
     
@@ -454,7 +467,7 @@ class Renderer: NSObject, MTKViewDelegate {
             
             self.updateDynamicBufferState()
             
-            self.updateGameState()
+            self.updateGameState(dynamicUniformBuffer: dynamicUniformBuffer, uniformBufferOffset: uniformBufferOffset)
             
             /// Delay getting the currentRenderPassDescriptor until we absolutely need it to avoid
             ///   holding onto the drawable and blocking the display pipeline any longer than necessary
@@ -493,7 +506,11 @@ class Renderer: NSObject, MTKViewDelegate {
                     renderEncoder.setFragmentBuffer(dynamicUniformBuffer,
                                                     offset:uniformBufferOffset + uniformsPVstride * x,
                                                     index: BufferIndex.uniformsPV.rawValue)
-                    draw(renderEncoder: renderEncoder, viewport: viewports[x], primitiveType: primitives[x])
+                    draw(renderEncoder: renderEncoder,
+                         viewport: viewports[x],
+                         dynamicUniformBuffer: dynamicUniformBuffer,
+                         uniformBufferOffset: uniformBufferOffset,
+                         primitiveType: primitives[x])
                 }
                 
                 renderEncoder.popDebugGroup()
@@ -521,7 +538,7 @@ class Renderer: NSObject, MTKViewDelegate {
             
             self.updateDynamicBufferState()
             
-            self.updateGameState()
+            self.updateGameState(dynamicUniformBuffer: dynamicUniformBuffer, uniformBufferOffset: uniformBufferOffset)
             
             /// Delay getting the currentRenderPassDescriptor until we absolutely need it to avoid
             ///   holding onto the drawable and blocking the display pipeline any longer than necessary
@@ -562,7 +579,11 @@ class Renderer: NSObject, MTKViewDelegate {
                                                     offset:uniformBufferOffset + uniformsPVstride * x,
                                                     index: BufferIndex.uniformsPV.rawValue)
                     
-                    draw(renderEncoder: renderEncoder, viewport: viewports[x], primitiveType: primitives[x])
+                    draw(renderEncoder: renderEncoder,
+                         viewport: viewports[x],
+                         dynamicUniformBuffer: dynamicUniformBuffer,
+                         uniformBufferOffset: uniformBufferOffset,
+                         primitiveType: primitives[x])
                     
                     renderEncoder.popDebugGroup()
                     renderEncoder.endEncoding()
@@ -590,29 +611,28 @@ class Renderer: NSObject, MTKViewDelegate {
             guard let t = mtkView.currentDrawable?.texture else {
                 return
             }
-            
             guard let commandQueue = self.device.makeCommandQueue() else {
                 return
             }
-            let textureDescriptor = MTLTextureDescriptor()
-            textureDescriptor.textureType = .type2D
-            textureDescriptor.width = t.width
-            textureDescriptor.height = t.height
-            textureDescriptor.pixelFormat = t.pixelFormat
-            textureDescriptor.usage = [.renderTarget, .shaderRead]
+            let renderTextureDescriptor = MTLTextureDescriptor()
+            renderTextureDescriptor.textureType = .type2D
+            renderTextureDescriptor.width = t.width
+            renderTextureDescriptor.height = t.height
+            renderTextureDescriptor.pixelFormat = t.pixelFormat
+            renderTextureDescriptor.usage = [.renderTarget, .shaderRead]
             
-            let textureDescriptor1 = MTLTextureDescriptor()
-            textureDescriptor1.textureType = .type2D
-            textureDescriptor1.width = t.width
-            textureDescriptor1.height = t.height
-            textureDescriptor1.pixelFormat = MTLPixelFormat.depth32Float_stencil8
-            textureDescriptor1.storageMode = .private
-            textureDescriptor1.usage = [.renderTarget, .shaderRead]
+            let depthTextureDescriptor = MTLTextureDescriptor()
+            depthTextureDescriptor.textureType = .type2D
+            depthTextureDescriptor.width = t.width
+            depthTextureDescriptor.height = t.height
+            depthTextureDescriptor.pixelFormat = MTLPixelFormat.depth32Float_stencil8
+            depthTextureDescriptor.storageMode = .private // 반드시 private로.
+            depthTextureDescriptor.usage = [.renderTarget, .shaderRead]
             
-            guard let texture = self.device.makeTexture(descriptor: textureDescriptor) else {
+            guard let texture = self.device.makeTexture(descriptor: renderTextureDescriptor) else {
                 return
             }
-            guard let depthTexture = self.device.makeTexture(descriptor: textureDescriptor1) else {
+            guard let depthTexture = self.device.makeTexture(descriptor: depthTextureDescriptor) else {
                 return
             }
             let renderPassDescriptor = MTLRenderPassDescriptor()
@@ -620,6 +640,13 @@ class Renderer: NSObject, MTKViewDelegate {
             renderPassDescriptor.colorAttachments[0].loadAction = .clear
             renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
             renderPassDescriptor.colorAttachments[0].storeAction = .store
+            
+            // 아래 초기화 코드는 기본값과 다르지 않아서 필요하지 않은 듯.
+            if let depthAttachment = mtkView.currentRenderPassDescriptor?.depthAttachment {
+                renderPassDescriptor.depthAttachment.storeAction = depthAttachment.storeAction
+                renderPassDescriptor.depthAttachment.loadAction = depthAttachment.loadAction
+            }
+            
             renderPassDescriptor.depthAttachment.texture = depthTexture
             renderPassDescriptor.stencilAttachment.texture = depthTexture
             
