@@ -47,7 +47,6 @@ struct MetalView: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: MTKView, context: Context) {
-        GZLogFunc(command)
         guard let r = context.coordinator.renderer else {
             return
         }
@@ -63,7 +62,6 @@ struct MetalView: UIViewRepresentable {
                 if let textureImage {
                     r.getTexture(mtkView: uiView) { image in
                         textureImage.wrappedValue = image
-                        GZLogFunc()
                     }
                 }
             }

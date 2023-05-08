@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9625D4F12A090E9900DB88F7 /* UIImage-extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9625D4F02A090E9900DB88F7 /* UIImage-extension.swift */; };
 		965BCA112A038B32004A3494 /* SwiftUI02App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965BCA102A038B32004A3494 /* SwiftUI02App.swift */; };
 		965BCA132A038B32004A3494 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965BCA122A038B32004A3494 /* ContentView.swift */; };
 		965BCA152A038B34004A3494 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 965BCA142A038B34004A3494 /* Assets.xcassets */; };
@@ -24,7 +23,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		9625D4F02A090E9900DB88F7 /* UIImage-extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage-extension.swift"; sourceTree = "<group>"; };
 		965BCA0D2A038B31004A3494 /* SwiftUI02.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftUI02.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		965BCA102A038B32004A3494 /* SwiftUI02App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUI02App.swift; sourceTree = "<group>"; };
 		965BCA122A038B32004A3494 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -57,7 +55,6 @@
 		965BCA042A038B31004A3494 = {
 			isa = PBXGroup;
 			children = (
-				9625D4F02A090E9900DB88F7 /* UIImage-extension.swift */,
 				965BCA0F2A038B32004A3494 /* SwiftUI02 */,
 				965BCA0E2A038B32004A3494 /* Products */,
 			);
@@ -180,7 +177,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				9693F4BE2A08BB5C00ADAE4A /* Shaders.metal in Sources */,
-				9625D4F12A090E9900DB88F7 /* UIImage-extension.swift in Sources */,
 				9693F4C12A08BB9E00ADAE4A /* GZLog.swift in Sources */,
 				9693F4B32A08B82F00ADAE4A /* MetalView.swift in Sources */,
 				9693F4C52A08D20B00ADAE4A /* Command.swift in Sources */,
@@ -318,6 +314,7 @@
 				DEVELOPMENT_TEAM = J8647L48BZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Metal02;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -356,6 +353,7 @@
 				DEVELOPMENT_TEAM = J8647L48BZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Metal02;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;

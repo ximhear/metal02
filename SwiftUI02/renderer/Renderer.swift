@@ -52,9 +52,6 @@ class Renderer: NSObject, MTKViewDelegate {
     
     var meshes: [MTKMesh]
     
-    var captured: MTLTexture?
-    var capturedCI: CIImage?
-    
     init?(metalKitView: MTKView) {
         GZLogFunc(projectionMatrix)
         self.device = metalKitView.device!
@@ -367,11 +364,15 @@ class Renderer: NSObject, MTKViewDelegate {
         GZLogFunc()
         /// Per frame updates hare
         var pipelineState: MTLRenderPipelineState
+        var pipelineStateLine: MTLRenderPipelineState
         let mtlVertexDescriptor = Renderer.buildMetalVertexDescriptor()
         do {
             pipelineState = try Renderer.buildRenderPipelineWithDevice(device: device,
                                                                        metalKitView: view,
                                                                        mtlVertexDescriptor: mtlVertexDescriptor)
+            pipelineStateLine = try Renderer.buildRenderPipelineLineWithDevice(device: device,
+                                                                               metalKitView: view,
+                                                                               mtlVertexDescriptor: mtlVertexDescriptor)
         } catch {
             print("Unable to compile render pipeline state.  Error info: \(error)")
             return
@@ -416,7 +417,7 @@ class Renderer: NSObject, MTKViewDelegate {
                 let pipelines = [
                     pipelineState,
                     pipelineState,
-                    pipelineState,
+                    pipelineStateLine,
                     pipelineState,
                 ]
                 for x in 0..<4 {
@@ -614,11 +615,10 @@ class Renderer: NSObject, MTKViewDelegate {
             guard let depthTexture = self.device.makeTexture(descriptor: textureDescriptor1) else {
                 return
             }
-            self.captured = texture
             let renderPassDescriptor = MTLRenderPassDescriptor()
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .clear
-            renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 1, green: 1, blue: 1, alpha: 1)
+            renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
             renderPassDescriptor.colorAttachments[0].storeAction = .store
             renderPassDescriptor.depthAttachment.texture = depthTexture
             renderPassDescriptor.stencilAttachment.texture = depthTexture
@@ -628,12 +628,6 @@ class Renderer: NSObject, MTKViewDelegate {
             
             let bbb = self.textureToImage(texture: texture)
             completion(bbb)
-//            guard let ciimage = CIImage.init(mtlTexture: texture, options: nil) else {
-//                return
-//            }
-//            let a = ciimage.transformed(by: CGAffineTransform(scaleX: 1, y: -1))
-//            self.capturedCI = a
-//            completion(UIImage.init(ciImage: a))
         }
     }
     func textureToImage(texture: MTLTexture) -> UIImage {
@@ -645,7 +639,7 @@ class Renderer: NSObject, MTKViewDelegate {
             print("Failed to create CGImage from CIImage")
             return UIImage()
         }
-        let image = UIImage(cgImage: cgImage)
+        let image = UIImage(cgImage: cgImage, scale: UIScreen.main.scale, orientation: .up)
         return image
     }
 }
