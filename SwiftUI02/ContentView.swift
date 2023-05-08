@@ -15,7 +15,7 @@ struct ContentView: View {
         GeometryReader { proxy in
             VStack {
                 ZStack {
-                    MetalView(command: Command(id: date, command: command))
+                    MetalView(command: Command(id: date, command: command), uiImage: nil)
                     VStack {
                         Button("reset") {
                             command = "reset"

@@ -9,6 +9,6 @@ import Foundation
 
 struct Command: Identifiable {
     let id: Date
-    let command: String
+    var command: String
 }
 

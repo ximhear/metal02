@@ -52,6 +52,9 @@ class Renderer: NSObject, MTKViewDelegate {
     
     var meshes: [MTKMesh]
     
+    var captured: MTLTexture?
+    var capturedCI: CIImage?
+    
     init?(metalKitView: MTKView) {
         GZLogFunc(projectionMatrix)
         self.device = metalKitView.device!
@@ -325,7 +328,7 @@ class Renderer: NSObject, MTKViewDelegate {
         rotation += 0.015
     }
     
-private func draw(renderEncoder: MTLRenderCommandEncoder, viewport: MTLViewport, primitiveType: MTLPrimitiveType? = nil) {
+    private func draw(renderEncoder: MTLRenderCommandEncoder, viewport: MTLViewport, primitiveType: MTLPrimitiveType? = nil) {
         renderEncoder.setViewport(viewport)
         let textures = [colorMap0, colorMap1]
         for x in 0..<2 {
@@ -357,6 +360,82 @@ private func draw(renderEncoder: MTLRenderCommandEncoder, viewport: MTLViewport,
                                                     indexBufferOffset: submesh.indexBuffer.offset)
                 
             }
+        }
+    }
+    
+    func draw(in view: MTKView, commandQueue: MTLCommandQueue, renderPassDescriptor: MTLRenderPassDescriptor?) {
+        GZLogFunc()
+        /// Per frame updates hare
+        var pipelineState: MTLRenderPipelineState
+        let mtlVertexDescriptor = Renderer.buildMetalVertexDescriptor()
+        do {
+            pipelineState = try Renderer.buildRenderPipelineWithDevice(device: device,
+                                                                       metalKitView: view,
+                                                                       mtlVertexDescriptor: mtlVertexDescriptor)
+        } catch {
+            print("Unable to compile render pipeline state.  Error info: \(error)")
+            return
+        }
+        
+        var depthState: MTLDepthStencilState
+        let depthStateDescriptor = MTLDepthStencilDescriptor()
+        depthStateDescriptor.depthCompareFunction = MTLCompareFunction.less
+        depthStateDescriptor.isDepthWriteEnabled = true
+        guard let state = device.makeDepthStencilState(descriptor:depthStateDescriptor) else {
+            return
+        }
+        depthState = state
+ 
+        if let commandBuffer = commandQueue.makeCommandBuffer() {
+            
+            self.updateDynamicBufferState()
+            
+            self.updateGameState()
+            
+            /// Delay getting the currentRenderPassDescriptor until we absolutely need it to avoid
+            ///   holding onto the drawable and blocking the display pipeline any longer than necessary
+            if let renderPassDescriptor, let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) {
+                /// Final pass rendering code here
+                renderEncoder.label = "Primary Render Encoder"
+                renderEncoder.pushDebugGroup("Draw Box")
+                renderEncoder.setCullMode(.back)
+                renderEncoder.setFrontFacing(.clockwise)
+                renderEncoder.setDepthStencilState(depthState)
+                
+                
+                let viewports = [
+                    MTLViewport(originX: 0, originY: 0, width: Double(view.drawableSize.width / 2), height: Double(view.drawableSize.height / 2), znear: 0.0, zfar: 1.0),
+                    MTLViewport(originX: view.drawableSize.width / 2, originY: 0, width: Double(view.drawableSize.width / 2), height: Double(view.drawableSize.height / 2), znear: 0.0, zfar: 1.0),
+                    MTLViewport(originX: 0, originY: view.drawableSize.height / 2, width: Double(view.drawableSize.width / 2), height: Double(view.drawableSize.height / 2), znear: 0.0, zfar: 1.0),
+                    MTLViewport(originX: view.drawableSize.width / 2, originY: view.drawableSize.height / 2, width: Double(view.drawableSize.width / 2), height: Double(view.drawableSize.height / 2), znear: 0.0, zfar: 1.0)
+                    ]
+                
+                let primitives: [MTLPrimitiveType?] = [
+                    .triangle, .triangle, .lineStrip, .triangle
+                ]
+                let pipelines = [
+                    pipelineState,
+                    pipelineState,
+                    pipelineState,
+                    pipelineState,
+                ]
+                for x in 0..<4 {
+                    renderEncoder.setRenderPipelineState(pipelines[x])
+                    renderEncoder.setVertexBuffer(dynamicUniformBuffer,
+                                                  offset:uniformBufferOffset + uniformsPVstride * x,
+                                                  index: BufferIndex.uniformsPV.rawValue)
+                    renderEncoder.setFragmentBuffer(dynamicUniformBuffer,
+                                                    offset:uniformBufferOffset + uniformsPVstride * x,
+                                                    index: BufferIndex.uniformsPV.rawValue)
+                    draw(renderEncoder: renderEncoder, viewport: viewports[x], primitiveType: primitives[x])
+                }
+                
+                renderEncoder.popDebugGroup()
+                renderEncoder.endEncoding()
+            }
+            commandBuffer.commit()
+            commandBuffer.waitUntilCompleted()
+            GZLogFunc()
         }
     }
     
@@ -503,6 +582,71 @@ private func draw(renderEncoder: MTLRenderCommandEncoder, viewport: MTLViewport,
         let aspect = Float(size.width) / Float(size.height)
 //        projectionMatrix = makeRightHandedPerspectiveMatrix(fovyRadians: radians_from_degrees(65), aspectRatio:aspect, nearZ: 0.1, farZ: 100.0)
         projectionMatrix = makeLeftHandedPerspectiveMatrix(fovyRadians: radians_from_degrees(65), aspectRatio:aspect, nearZ: 0.1, farZ: 100.0)
+    }
+    
+    func getTexture(mtkView: MTKView, completion: @escaping (UIImage) -> Void) {
+        DispatchQueue.main.async {
+            guard let t = mtkView.currentDrawable?.texture else {
+                return
+            }
+            
+            guard let commandQueue = self.device.makeCommandQueue() else {
+                return
+            }
+            let textureDescriptor = MTLTextureDescriptor()
+            textureDescriptor.textureType = .type2D
+            textureDescriptor.width = t.width
+            textureDescriptor.height = t.height
+            textureDescriptor.pixelFormat = t.pixelFormat
+            textureDescriptor.usage = [.renderTarget, .shaderRead]
+            
+            let textureDescriptor1 = MTLTextureDescriptor()
+            textureDescriptor1.textureType = .type2D
+            textureDescriptor1.width = t.width
+            textureDescriptor1.height = t.height
+            textureDescriptor1.pixelFormat = MTLPixelFormat.depth32Float_stencil8
+            textureDescriptor1.storageMode = .private
+            textureDescriptor1.usage = [.renderTarget, .shaderRead]
+            
+            guard let texture = self.device.makeTexture(descriptor: textureDescriptor) else {
+                return
+            }
+            guard let depthTexture = self.device.makeTexture(descriptor: textureDescriptor1) else {
+                return
+            }
+            self.captured = texture
+            let renderPassDescriptor = MTLRenderPassDescriptor()
+            renderPassDescriptor.colorAttachments[0].texture = texture
+            renderPassDescriptor.colorAttachments[0].loadAction = .clear
+            renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 1, green: 1, blue: 1, alpha: 1)
+            renderPassDescriptor.colorAttachments[0].storeAction = .store
+            renderPassDescriptor.depthAttachment.texture = depthTexture
+            renderPassDescriptor.stencilAttachment.texture = depthTexture
+            
+            
+            self.draw(in: mtkView, commandQueue: commandQueue, renderPassDescriptor: renderPassDescriptor)
+            
+            let bbb = self.textureToImage(texture: texture)
+            completion(bbb)
+//            guard let ciimage = CIImage.init(mtlTexture: texture, options: nil) else {
+//                return
+//            }
+//            let a = ciimage.transformed(by: CGAffineTransform(scaleX: 1, y: -1))
+//            self.capturedCI = a
+//            completion(UIImage.init(ciImage: a))
+        }
+    }
+    func textureToImage(texture: MTLTexture) -> UIImage {
+        let context = CIContext(options: nil)
+        var ciImage = CIImage(mtlTexture: texture, options: nil)
+        let transform = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: ciImage!.extent.size.height)
+        ciImage = ciImage!.transformed(by: transform)
+        guard let cgImage = context.createCGImage(ciImage!, from: ciImage!.extent) else {
+            print("Failed to create CGImage from CIImage")
+            return UIImage()
+        }
+        let image = UIImage(cgImage: cgImage)
+        return image
     }
 }
 

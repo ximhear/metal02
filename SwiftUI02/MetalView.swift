@@ -9,15 +9,19 @@ import SwiftUI
 import MetalKit
 
 struct MetalView: UIViewRepresentable {
-    var command: Command
+    let command: Command
+    let textureImage: Binding<UIImage>?
     
-    init(command: Command) {
+    init(command: Command, uiImage: Binding<UIImage>?) {
+        GZLogFunc(command)
+        textureImage = uiImage
         self.command = command
     }
     
     class Coordinator: NSObject {
         var renderer: Renderer?
         var metalView: MTKView
+        var date: Date = .now
         
         override init() {
             GZLogFunc()
@@ -43,7 +47,7 @@ struct MetalView: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: MTKView, context: Context) {
-        GZLogFunc(command.command)
+        GZLogFunc(command)
         guard let r = context.coordinator.renderer else {
             return
         }
@@ -52,6 +56,17 @@ struct MetalView: UIViewRepresentable {
         }
         else if command.command == "jump" {
             r.rotation = r.rotation + .pi / 2.0
+        }
+        else if command.command == "capture" {
+            if context.coordinator.date != command.id {
+                context.coordinator.date = command.id
+                if let textureImage {
+                    r.getTexture(mtkView: uiView) { image in
+                        textureImage.wrappedValue = image
+                        GZLogFunc()
+                    }
+                }
+            }
         }
     }
 }
