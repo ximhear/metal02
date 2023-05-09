@@ -12,7 +12,7 @@ struct MetalViewContainer: View {
     @State var captureImage: UIImage = .init()
     var body: some View {
         GeometryReader { proxy in
-            VStack {
+            VStack(spacing: 0) {
                 ZStack {
                     MetalView(command: command, uiImage: $captureImage)
                         .frame(width: proxy.size.width, height: proxy.size.height / 2.0)
