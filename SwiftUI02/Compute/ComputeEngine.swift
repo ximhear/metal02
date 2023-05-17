@@ -12,6 +12,7 @@ class ComputeEngine: ObservableObject {
     var device: MTLDevice?
     var commandQueue: MTLCommandQueue?
     var computePipelineState: MTLComputePipelineState?
+    let dataSize = 1024 * 1024 * 10
     
     init() {
         guard let device = MTLCreateSystemDefaultDevice() else {
@@ -46,7 +47,6 @@ class ComputeEngine: ObservableObject {
         let s = Date.now
         start()
         // Create some data
-        let dataSize = 1024 // choose an appropriate size
         var inData = [Int](repeating: 0, count: dataSize)
         for x in 0..<dataSize {
             inData[x] = x
@@ -54,8 +54,8 @@ class ComputeEngine: ObservableObject {
         var outData = [Int](repeating: 1, count: dataSize)
 
         // Create input and output buffers
-        let inBuffer = device.makeBuffer(bytes: &inData, length: dataSize * MemoryLayout<Int>.size, options: [])
-        let outBuffer = device.makeBuffer(bytes: &outData, length: dataSize * MemoryLayout<Int>.size, options: [])
+        let inBuffer = device.makeBuffer(bytes: &inData, length: dataSize * MemoryLayout<Int64>.size, options: [])
+        let outBuffer = device.makeBuffer(bytes: &outData, length: dataSize * MemoryLayout<Int64>.size, options: [])
 
         // Create a command buffer
         let commandBuffer = commandQueue.makeCommandBuffer()!
@@ -69,16 +69,10 @@ class ComputeEngine: ObservableObject {
         computeEncoder.setBuffer(outBuffer, offset: 0, index: 1)
 
         let w = computePipelineState.threadExecutionWidth
-        GZLogFunc(w)
-        GZLogFunc(computePipelineState.maxTotalThreadsPerThreadgroup)
-        GZLogFunc()
         // Dispatch the compute command
         let threadsPerGroup = MTLSize(width: w, height: 1, depth: 1)
-        let numThreadgroups = MTLSize(width: (dataSize + w - 1) / w * 2, height: 1, depth: 1)
+        let numThreadgroups = MTLSize(width: (dataSize + w - 1) / w, height: 1, depth: 1)
         computeEncoder.dispatchThreadgroups(numThreadgroups, threadsPerThreadgroup: threadsPerGroup)
-        GZLogFunc(threadsPerGroup)
-        GZLogFunc(numThreadgroups)
-        GZLogFunc()
         
 //        GZLogFunc(w)
 //        let h = computePipelineState.maxTotalThreadsPerThreadgroup / w
@@ -95,15 +89,27 @@ class ComputeEngine: ObservableObject {
         // Wait for the command to complete
         commandBuffer.waitUntilCompleted()
         let e = Date.now
-        
         let dataPointer = outBuffer!.contents().bindMemory(to: Int.self, capacity: dataSize)
-        var output = [Int](repeating: 0, count: dataSize)
-        for i in 0..<dataSize {
-            output[i] = dataPointer[i]
+        GZLogFunc(dataPointer[dataSize - 1])
+        finished(e.timeIntervalSince(s))
+    }
+    
+    func calculateOnCPU(start: @escaping () -> Void, finished: @escaping (TimeInterval) -> Void) {
+        
+        let s = Date.now
+        start()
+        // Create some data
+        var inData = [Int](repeating: 0, count: dataSize)
+        for x in 0..<dataSize {
+            inData[x] = x
         }
-        for (index, x) in output.enumerated() {
-            GZLogFunc("[\(index)] : \(x)")
+        var outData = [Int](repeating: 1, count: dataSize)
+        for (index, x) in inData.enumerated() {
+            outData[index] = x * x
         }
+        let e = Date.now
+        GZLogFunc(outData[dataSize - 1])
+        
         finished(e.timeIntervalSince(s))
     }
     

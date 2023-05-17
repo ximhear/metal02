@@ -24,6 +24,7 @@ struct ComputeView: View {
             Spacer()
             Text("\(elapsedOnCPU)")
             Button {
+                calculateOnCPU()
             } label: {
                 Text("Calculate on CPU")
             }
@@ -39,7 +40,15 @@ struct ComputeView: View {
             GZLogFunc(interval)
             elapsedOnGPU = interval
         }
-
+    }
+    
+    func calculateOnCPU() {
+        engine.calculateOnCPU {
+            GZLogFunc()
+        } finished: { interval in
+            GZLogFunc(interval)
+            elapsedOnCPU = interval
+        }
     }
 }
 
