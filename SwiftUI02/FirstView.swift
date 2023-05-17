@@ -20,6 +20,9 @@ struct FirstView: View {
                 NavigationLink("metal view controller") {
                     MetalVCView(command: .init(id: .now, command: ""))
                 }
+                NavigationLink("compute") {
+                    ComputeView()
+                }
             }
         }
     }

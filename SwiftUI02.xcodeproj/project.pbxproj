@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		965531D32A14C8AF00732BBE /* ComputeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965531D22A14C8AF00732BBE /* ComputeView.swift */; };
+		965531D62A14CA7F00732BBE /* ComputeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965531D52A14CA7F00732BBE /* ComputeEngine.swift */; };
+		965531D82A14CB5400732BBE /* compute.metal in Sources */ = {isa = PBXBuildFile; fileRef = 965531D72A14CB5400732BBE /* compute.metal */; };
 		965BCA112A038B32004A3494 /* SwiftUI02App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965BCA102A038B32004A3494 /* SwiftUI02App.swift */; };
 		965BCA132A038B32004A3494 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965BCA122A038B32004A3494 /* ContentView.swift */; };
 		965BCA152A038B34004A3494 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 965BCA142A038B34004A3494 /* Assets.xcassets */; };
@@ -23,6 +26,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		965531D22A14C8AF00732BBE /* ComputeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputeView.swift; sourceTree = "<group>"; };
+		965531D52A14CA7F00732BBE /* ComputeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputeEngine.swift; sourceTree = "<group>"; };
+		965531D72A14CB5400732BBE /* compute.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = compute.metal; sourceTree = "<group>"; };
 		965BCA0D2A038B31004A3494 /* SwiftUI02.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftUI02.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		965BCA102A038B32004A3494 /* SwiftUI02App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUI02App.swift; sourceTree = "<group>"; };
 		965BCA122A038B32004A3494 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -52,6 +58,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		965531D42A14CA5300732BBE /* Compute */ = {
+			isa = PBXGroup;
+			children = (
+				965531D22A14C8AF00732BBE /* ComputeView.swift */,
+				965531D52A14CA7F00732BBE /* ComputeEngine.swift */,
+				965531D72A14CB5400732BBE /* compute.metal */,
+			);
+			path = Compute;
+			sourceTree = "<group>";
+		};
 		965BCA042A038B31004A3494 = {
 			isa = PBXGroup;
 			children = (
@@ -75,6 +91,7 @@
 				9693F4B82A08BAEC00ADAE4A /* renderer */,
 				965BCA102A038B32004A3494 /* SwiftUI02App.swift */,
 				9693F4C22A08C8C400ADAE4A /* FirstView.swift */,
+				965531D42A14CA5300732BBE /* Compute */,
 				965BCA122A038B32004A3494 /* ContentView.swift */,
 				9693F4B62A08B95000ADAE4A /* MetalViewController.swift */,
 				9693F4B42A08B89900ADAE4A /* MetalVCView.swift */,
@@ -184,9 +201,12 @@
 				965BCA132A038B32004A3494 /* ContentView.swift in Sources */,
 				9693F4C72A08D2E800ADAE4A /* MetalViewContainer.swift in Sources */,
 				9693F4B72A08B95000ADAE4A /* MetalViewController.swift in Sources */,
+				965531D32A14C8AF00732BBE /* ComputeView.swift in Sources */,
+				965531D62A14CA7F00732BBE /* ComputeEngine.swift in Sources */,
 				9693F4B52A08B89900ADAE4A /* MetalVCView.swift in Sources */,
 				9693F4C32A08C8C400ADAE4A /* FirstView.swift in Sources */,
 				965BCA112A038B32004A3494 /* SwiftUI02App.swift in Sources */,
+				965531D82A14CB5400732BBE /* compute.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
