@@ -21,19 +21,18 @@ kernel void square_numbers(device int64_t* in [[ buffer(0) ]],
     out[gid] = in[gid] * in[gid];
 }
 
-kernel void mandelbrot(texture2d<uint, access::read> inputTexture [[texture(0)]],
-                                texture2d<float, access::write> outputTexture [[texture(1)]],
+kernel void mandelbrot(texture2d<float, access::write> outputTexture [[texture(0)]],
                                 uint2 gid [[thread_position_in_grid]])
 {
-    if (gid.x >= inputTexture.get_width() || gid.y >= inputTexture.get_height()) {
+    if (gid.x >= outputTexture.get_width() || gid.y >= outputTexture.get_height()) {
         return;
     }
     
     // Convert pixel coordinates to complex plane coordinates
-    float2 a = (float2(gid) / float2(inputTexture.get_width(), inputTexture.get_height())) * 4.0 - 2.0;
+    float2 a = (float2(gid) / float2(outputTexture.get_width(), outputTexture.get_height())) * 4.0 - 2.0;
     float2 c;
-    float w = float(inputTexture.get_width());
-    float h = float(inputTexture.get_height());
+    float w = float(outputTexture.get_width());
+    float h = float(outputTexture.get_height());
     if (w > h) {
         c = float2(a.x * w / h, a.y);
     }

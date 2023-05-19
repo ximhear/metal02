@@ -159,8 +159,8 @@ class ComputeEngine: ObservableObject {
 
         // Set the compute pipeline state and buffers
         computeEncoder.setComputePipelineState(computePipelineState)
-        computeEncoder.setTexture(inputTexture, index: 0)
-        computeEncoder.setTexture(outputTexture, index: 1)
+        computeEncoder.setTexture(outputTexture, index: 0)
+//        computeEncoder.setTexture(outputTexture, index: 1)
 
         let w = computePipelineState.threadExecutionWidth > 32 ? 32 : computePipelineState.threadExecutionWidth
         let h = 8
