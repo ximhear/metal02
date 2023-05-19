@@ -10,6 +10,7 @@ import SwiftUI
 struct ComputeView: View {
     @State var elapsedOnGPU: TimeInterval = 0
     @State var elapsedOnCPU: TimeInterval = 0
+    @State var image: UIImage = .init()
     @StateObject var engine: ComputeEngine = .init()
     var body: some View {
         VStack {
@@ -27,6 +28,14 @@ struct ComputeView: View {
                 calculateOnCPU()
             } label: {
                 Text("Calculate on CPU")
+            }
+            .buttonStyle(.borderedProminent)
+            Spacer()
+            Image(uiImage: image)
+            Button {
+                fillTextureWithRed()
+            } label: {
+                Text("Fill texture with red")
             }
             .buttonStyle(.borderedProminent)
             Spacer()
@@ -48,6 +57,19 @@ struct ComputeView: View {
         } finished: { interval in
             GZLogFunc(interval)
             elapsedOnCPU = interval
+        }
+    }
+    
+    func fillTextureWithRed() {
+        engine.fillTextureWithRed {
+            GZLogFunc()
+        } finished: { interval, img in
+            GZLogFunc(interval)
+            if let img {
+                withAnimation(.easeInOut) {
+                    image = img
+                }
+            }
         }
     }
 }

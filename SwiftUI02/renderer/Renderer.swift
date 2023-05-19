@@ -653,11 +653,11 @@ class Renderer: NSObject, MTKViewDelegate {
             
             self.draw(in: mtkView, commandQueue: commandQueue, renderPassDescriptor: renderPassDescriptor)
             
-            let bbb = self.textureToImage(texture: texture)
+            let bbb = Self.textureToImage(texture: texture)
             completion(bbb)
         }
     }
-    func textureToImage(texture: MTLTexture) -> UIImage {
+    static func textureToImage(texture: MTLTexture) -> UIImage {
         let context = CIContext(options: nil)
         var ciImage = CIImage(mtlTexture: texture, options: nil)
         let transform = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: ciImage!.extent.size.height)

@@ -7,11 +7,13 @@
 
 import Foundation
 import Metal
+import UIKit
 
 class ComputeEngine: ObservableObject {
     var device: MTLDevice?
     var commandQueue: MTLCommandQueue?
     var computePipelineState: MTLComputePipelineState?
+    var computePipelineStateForMendelBrot: MTLComputePipelineState?
     let dataSize = 1024 * 1024 * 10
     
     init() {
@@ -24,10 +26,12 @@ class ComputeEngine: ObservableObject {
         
         guard let library = device.makeDefaultLibrary() else { return }
         guard let function = library.makeFunction(name: "square_numbers") else { return }
+        guard let mandelbrot = library.makeFunction(name: "mandelbrot") else { return }
         
         // Create a compute pipeline state
         do {
             computePipelineState = try device.makeComputePipelineState(function: function)
+            computePipelineStateForMendelBrot = try device.makeComputePipelineState(function: mandelbrot)
         }
         catch {
             GZLogFunc(error)
@@ -111,6 +115,71 @@ class ComputeEngine: ObservableObject {
         GZLogFunc(outData[dataSize - 1])
         
         finished(e.timeIntervalSince(s))
+    }
+    
+    func fillTextureWithRed(start: @escaping () -> Void, finished: @escaping (TimeInterval, UIImage?) -> Void) {
+        
+        guard let device, let commandQueue, let computePipelineState = computePipelineStateForMendelBrot else {
+            start()
+            finished(-1, nil)
+            return
+        }
+
+        let s = Date.now
+        start()
+        
+        let dataSize = Int(100 * UIScreen.main.scale)
+        
+        let inputDesc = MTLTextureDescriptor.texture2DDescriptor(
+            pixelFormat: .r8Uint,
+            width: dataSize,
+            height: dataSize,
+            mipmapped: false
+        )
+        let inputTexture = device.makeTexture(descriptor: inputDesc)!
+        
+        let outputDesc = MTLTextureDescriptor.texture2DDescriptor(
+            pixelFormat: .rgba8Unorm,
+            width: dataSize,
+            height: dataSize,
+            mipmapped: false
+        )
+        outputDesc.storageMode = .shared
+        outputDesc.usage = [.shaderRead, .shaderWrite]
+
+        let outputTexture = device.makeTexture(descriptor: outputDesc)!
+        
+
+        // Create a command buffer
+        let commandBuffer = commandQueue.makeCommandBuffer()!
+
+        // Create a compute command encoder
+        let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
+
+        // Set the compute pipeline state and buffers
+        computeEncoder.setComputePipelineState(computePipelineState)
+        computeEncoder.setTexture(inputTexture, index: 0)
+        computeEncoder.setTexture(outputTexture, index: 1)
+
+        let w = computePipelineState.threadExecutionWidth > 32 ? 32 : computePipelineState.threadExecutionWidth
+        let h = 8
+        // Dispatch the compute command
+        let threadsPerGroup = MTLSize(width: w, height: h, depth: 1)
+        let numThreadgroups = MTLSize(width: (dataSize + w - 1) / w, height: (dataSize + h - 1) / h, depth: 1)
+        GZLogFunc(threadsPerGroup)
+        GZLogFunc(numThreadgroups)
+        GZLogFunc()
+        computeEncoder.dispatchThreadgroups(numThreadgroups, threadsPerThreadgroup: threadsPerGroup)
+        
+        // End encoding and commit the command
+        computeEncoder.endEncoding()
+        commandBuffer.commit()
+
+        // Wait for the command to complete
+        commandBuffer.waitUntilCompleted()
+        let e = Date.now
+        let img = Renderer.textureToImage(texture: outputTexture)
+        finished(e.timeIntervalSince(s), img)
     }
     
 }

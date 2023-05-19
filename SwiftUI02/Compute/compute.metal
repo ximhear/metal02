@@ -20,3 +20,15 @@ kernel void square_numbers(device int64_t* in [[ buffer(0) ]],
                            uint gid [[ thread_position_in_grid ]]) {
     out[gid] = in[gid] * in[gid];
 }
+
+kernel void mandelbrot(texture2d<float, access::read> inputTexture [[texture(0)]],
+                                texture2d<float, access::write> outputTexture [[texture(1)]],
+                                uint2 gid [[thread_position_in_grid]])
+{
+    // read from input texture
+//    float4 input = inputTexture.read(gid);
+    
+    
+    // write to output texture
+    outputTexture.write(float4(1, 0, 0, 1), gid);
+}
