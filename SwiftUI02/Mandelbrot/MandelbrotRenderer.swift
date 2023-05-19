@@ -42,6 +42,7 @@ class MandelbrotRenderer: NSObject, MTKViewDelegate {
     var projectionMatrix: matrix_float4x4 = matrix_float4x4()
     
     var drag: CGSize = .zero
+    var scale: CGFloat = 1.0
     var aspectRatio: Float = 1.0
     
     private var vertexBuffer: MTLBuffer!
@@ -187,6 +188,7 @@ class MandelbrotRenderer: NSObject, MTKViewDelegate {
             uniforms?[0].dimension = vector_float2(2, 2 / aspectRatio)
         }
         uniforms?[0].drag = vector_float2(Float(drag.width), Float(drag.height))
+        uniforms?[0].scale = Float(scale)
     }
     
     private func draw(renderEncoder: MTLRenderCommandEncoder,
@@ -290,8 +292,9 @@ class MandelbrotRenderer: NSObject, MTKViewDelegate {
         }
     }
     
-    func applyDrag(_ drag: CGSize) {
+    func apply(drag: CGSize, scale: CGFloat) {
         self.drag = CGSize(width: -drag.width, height: drag.height)
+        self.scale = scale
     }
 }
 

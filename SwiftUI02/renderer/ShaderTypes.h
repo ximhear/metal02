@@ -59,6 +59,7 @@ typedef struct
     matrix_float4x4 modelMatrix;
     vector_float2 dimension;
     vector_float2 drag;
+    float scale;
 } Uniforms;
 
 #endif /* ShaderTypes_h */

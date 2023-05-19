@@ -110,17 +110,8 @@ fragment float4 fragmentMandelbrot(ColorInOut1 in [[stage_in]],
                                constant Uniforms & uniforms [[ buffer(1) ]])
 {
     // Convert pixel coordinates to complex plane coordinates
-    float2 a = in.coord + uniforms.dimension * uniforms.drag;
-    float2 c = a * 3;
-//    float w = float(outputTexture.get_width());
-//    float h = float(outputTexture.get_height());
-//    if (w > h) {
-//        c = float2(a.x * w / h, a.y);
-//    }
-//    else {
-//        c = float2(a.x, a.y * h / w);
-//    }
-    
+    float2 a = in.coord / uniforms.scale + uniforms.dimension * uniforms.drag;
+    float2 c = a * 2;
     
     float2 z = 0.0;
     float iter = 0.0;
@@ -133,10 +124,11 @@ fragment float4 fragmentMandelbrot(ColorInOut1 in [[stage_in]],
     }
     
     // Write the number of iterations to the texture
-    if (iter < maxIter) {
-        iter *= 200;
-        float color = iter / maxIter;
-        return float4(color, 8.0, 0.6, 1.0);
-    }
-    return float4(1.0, 0, 0, 1.0);
+//    if (iter < maxIter) {
+//        iter *= 200;
+//        float color = iter / maxIter;
+//        return float4(color, 8.0, 0.6, 1.0);
+//    }
+    float color = iter / maxIter;
+    return float4(color, 0, 0, 1.0);
 }

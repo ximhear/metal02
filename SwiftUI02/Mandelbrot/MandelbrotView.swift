@@ -10,9 +10,11 @@ import MetalKit
 
 struct MandelbrotView: UIViewRepresentable {
     @Binding var drag: CGSize
+    @Binding var scale: CGFloat
     
-    init(drag: Binding<CGSize>) {
+    init(drag: Binding<CGSize>, scale: Binding<CGFloat>) {
         self._drag = drag
+        self._scale = scale
     }
     
     class Coordinator: NSObject {
@@ -29,11 +31,11 @@ struct MandelbrotView: UIViewRepresentable {
             GZLogFunc()
         }
         
-        func applyDrag(_ drag: CGSize) {
+        func apply(drag: CGSize, scale: CGFloat) {
             guard let renderer else {
                 return
             }
-            renderer.applyDrag(drag)
+            renderer.apply(drag: drag, scale: scale)
         }
     }
     
@@ -50,6 +52,6 @@ struct MandelbrotView: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: MTKView, context: Context) {
-        context.coordinator.applyDrag(drag)
+        context.coordinator.apply(drag: drag, scale: scale)
     }
 }
