@@ -128,20 +128,21 @@ class ComputeEngine: ObservableObject {
         let s = Date.now
         start()
         
-        let dataSize = Int(100 * UIScreen.main.scale)
+        let width = Int(100 * UIScreen.main.scale)
+        let height = Int(200 * UIScreen.main.scale)
         
         let inputDesc = MTLTextureDescriptor.texture2DDescriptor(
             pixelFormat: .r8Uint,
-            width: dataSize,
-            height: dataSize,
+            width: width,
+            height: height,
             mipmapped: false
         )
         let inputTexture = device.makeTexture(descriptor: inputDesc)!
         
         let outputDesc = MTLTextureDescriptor.texture2DDescriptor(
             pixelFormat: .rgba8Unorm,
-            width: dataSize,
-            height: dataSize,
+            width: width,
+            height: height,
             mipmapped: false
         )
         outputDesc.storageMode = .shared
@@ -165,7 +166,7 @@ class ComputeEngine: ObservableObject {
         let h = 8
         // Dispatch the compute command
         let threadsPerGroup = MTLSize(width: w, height: h, depth: 1)
-        let numThreadgroups = MTLSize(width: (dataSize + w - 1) / w, height: (dataSize + h - 1) / h, depth: 1)
+        let numThreadgroups = MTLSize(width: (width + w - 1) / w, height: (height + h - 1) / h, depth: 1)
         GZLogFunc(threadsPerGroup)
         GZLogFunc(numThreadgroups)
         GZLogFunc()
