@@ -32,6 +32,8 @@ struct ComputeView: View {
             .buttonStyle(.borderedProminent)
             Spacer()
             Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
             Button {
                 fillTextureWithRed()
             } label: {

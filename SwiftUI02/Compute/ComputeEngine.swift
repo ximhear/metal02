@@ -128,8 +128,8 @@ class ComputeEngine: ObservableObject {
         let s = Date.now
         start()
         
-        let width = Int(100 * UIScreen.main.scale)
-        let height = Int(200 * UIScreen.main.scale)
+        let width = Int(200 * UIScreen.main.scale)
+        let height = Int(100 * UIScreen.main.scale)
         
         let inputDesc = MTLTextureDescriptor.texture2DDescriptor(
             pixelFormat: .r8Uint,
