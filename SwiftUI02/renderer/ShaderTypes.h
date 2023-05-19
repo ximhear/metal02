@@ -26,6 +26,7 @@ typedef NS_ENUM(EnumBackingType, BufferIndex)
     BufferIndexMeshPositions = 0,
     BufferIndexMeshGenerics  = 1,
     BufferIndexUniformsPV      = 2,
+    BufferIndexUniforms      = 2,
     BufferIndexUniformsM      = 3
 };
 
@@ -50,6 +51,13 @@ typedef struct
 {
     matrix_float4x4 modelMatrix;
 } UniformsM;
+
+typedef struct
+{
+    matrix_float4x4 projectionMatrix;
+    matrix_float4x4 viewMatrix;
+    matrix_float4x4 modelMatrix;
+} Uniforms;
 
 #endif /* ShaderTypes_h */
 

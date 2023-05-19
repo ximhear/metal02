@@ -79,3 +79,34 @@ fragment float4 fragmentShaderSolid(ColorInOut in [[stage_in]],
 {
     return float4(1, 1, 1, 1);
 }
+
+
+typedef struct
+{
+    float4 position [[position]];
+    float4 color;
+} ColorInOut1;
+typedef struct
+{
+    float2 position [[attribute(0)]];
+    float4 color [[attribute(1)]];
+} Vertex1;
+
+vertex ColorInOut1 vertexManderbrot(Vertex1 in [[stage_in]],
+                               constant Uniforms & uniforms [[ buffer(1) ]])
+{
+    ColorInOut1 out;
+
+    float4 position = float4(in.position.x, in.position.y, 1.0, 1.0);
+    out.position = uniforms.projectionMatrix * uniforms.viewMatrix * uniforms.modelMatrix * position;
+    out.color = in.color;
+    
+
+    return out;
+}
+
+fragment float4 fragmentMandelbrot(ColorInOut1 in [[stage_in]],
+                               constant Uniforms & uniforms [[ buffer(1) ]])
+{
+    return in.color;
+}

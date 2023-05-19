@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		961442582A1767F90003643B /* MandelbrotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961442572A1767F90003643B /* MandelbrotView.swift */; };
+		9614425B2A17698E0003643B /* MandelbrotRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9614425A2A17698E0003643B /* MandelbrotRenderer.swift */; };
+		9614425D2A1773F20003643B /* MandelbrotContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9614425C2A1773F10003643B /* MandelbrotContainer.swift */; };
 		965531D32A14C8AF00732BBE /* ComputeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965531D22A14C8AF00732BBE /* ComputeView.swift */; };
 		965531D62A14CA7F00732BBE /* ComputeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965531D52A14CA7F00732BBE /* ComputeEngine.swift */; };
 		965531D82A14CB5400732BBE /* compute.metal in Sources */ = {isa = PBXBuildFile; fileRef = 965531D72A14CB5400732BBE /* compute.metal */; };
@@ -26,6 +29,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		961442572A1767F90003643B /* MandelbrotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MandelbrotView.swift; sourceTree = "<group>"; };
+		9614425A2A17698E0003643B /* MandelbrotRenderer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MandelbrotRenderer.swift; sourceTree = "<group>"; };
+		9614425C2A1773F10003643B /* MandelbrotContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MandelbrotContainer.swift; sourceTree = "<group>"; };
 		965531D22A14C8AF00732BBE /* ComputeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputeView.swift; sourceTree = "<group>"; };
 		965531D52A14CA7F00732BBE /* ComputeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputeEngine.swift; sourceTree = "<group>"; };
 		965531D72A14CB5400732BBE /* compute.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = compute.metal; sourceTree = "<group>"; };
@@ -58,6 +64,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		961442592A1769490003643B /* Mandelbrot */ = {
+			isa = PBXGroup;
+			children = (
+				9614425A2A17698E0003643B /* MandelbrotRenderer.swift */,
+				961442572A1767F90003643B /* MandelbrotView.swift */,
+			);
+			path = Mandelbrot;
+			sourceTree = "<group>";
+		};
 		965531D42A14CA5300732BBE /* Compute */ = {
 			isa = PBXGroup;
 			children = (
@@ -89,8 +104,10 @@
 			children = (
 				9693F4C02A08BB9E00ADAE4A /* GZLog.swift */,
 				9693F4B82A08BAEC00ADAE4A /* renderer */,
+				961442592A1769490003643B /* Mandelbrot */,
 				965BCA102A038B32004A3494 /* SwiftUI02App.swift */,
 				9693F4C22A08C8C400ADAE4A /* FirstView.swift */,
+				9614425C2A1773F10003643B /* MandelbrotContainer.swift */,
 				965531D42A14CA5300732BBE /* Compute */,
 				965BCA122A038B32004A3494 /* ContentView.swift */,
 				9693F4B62A08B95000ADAE4A /* MetalViewController.swift */,
@@ -195,7 +212,9 @@
 			files = (
 				9693F4BE2A08BB5C00ADAE4A /* Shaders.metal in Sources */,
 				9693F4C12A08BB9E00ADAE4A /* GZLog.swift in Sources */,
+				9614425B2A17698E0003643B /* MandelbrotRenderer.swift in Sources */,
 				9693F4B32A08B82F00ADAE4A /* MetalView.swift in Sources */,
+				961442582A1767F90003643B /* MandelbrotView.swift in Sources */,
 				9693F4C52A08D20B00ADAE4A /* Command.swift in Sources */,
 				9693F4BF2A08BB5C00ADAE4A /* Renderer.swift in Sources */,
 				965BCA132A038B32004A3494 /* ContentView.swift in Sources */,
@@ -203,6 +222,7 @@
 				9693F4B72A08B95000ADAE4A /* MetalViewController.swift in Sources */,
 				965531D32A14C8AF00732BBE /* ComputeView.swift in Sources */,
 				965531D62A14CA7F00732BBE /* ComputeEngine.swift in Sources */,
+				9614425D2A1773F20003643B /* MandelbrotContainer.swift in Sources */,
 				9693F4B52A08B89900ADAE4A /* MetalVCView.swift in Sources */,
 				9693F4C32A08C8C400ADAE4A /* FirstView.swift in Sources */,
 				965BCA112A038B32004A3494 /* SwiftUI02App.swift in Sources */,

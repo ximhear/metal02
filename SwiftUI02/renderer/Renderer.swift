@@ -17,7 +17,7 @@ let uniformsMstride = ((MemoryLayout<UniformsM>.size + 0xFF) & -0x100)
 let alignedUniformsPVSize = uniformsPVstride * 4
 let alignedUniformsMSize = uniformsMstride * 2
 
-let maxBuffersInFlight = 3
+fileprivate let maxBuffersInFlight = 3
 
 enum RendererError: Error {
     case badVertexDescriptor
