@@ -52,6 +52,10 @@ kernel void mandelbrot(texture2d<float, access::write> outputTexture [[texture(0
     }
     
     // Write the number of iterations to the texture
-    float color = iter / maxIter;
-    outputTexture.write(float4(color, color, color, 1.0), gid);
+    if (iter < maxIter) {
+        iter *= 200;
+        float color = iter / maxIter;
+        return outputTexture.write(float4(color, 8.0, 0.6, 1.0), gid);
+    }
+    outputTexture.write(float4(1.0, 0, 0, 1.0), gid);
 }
