@@ -42,6 +42,7 @@ class MandelbrotRenderer: NSObject, MTKViewDelegate {
     var projectionMatrix: matrix_float4x4 = matrix_float4x4()
     
     var drag: CGSize = .zero
+    var aspectRatio: Float = 1.0
     
     private var vertexBuffer: MTLBuffer!
     private var vertexData: [Vertex] = [] // Array of rectangle vertices
@@ -88,24 +89,26 @@ class MandelbrotRenderer: NSObject, MTKViewDelegate {
         guard let state = device.makeDepthStencilState(descriptor:depthStateDescriptor) else { return false }
         depthState = state
         
-        setupVertices()
         return true
     }
     
-    private func setupVertices() {
+    private func setupVertices(xFactor: Float, yFactor: Float) {
         guard let device else { return }
+        GZLogFunc(xFactor)
+        GZLogFunc(yFactor)
+        GZLogFunc()
         vertexData = []
             // Create an array of rectangle vertices with position and color attributes
             let rectangle1 = [
-                Vertex(position: vector_float2(-0.5, -0.5), color: vector_float4(1, 0, 0, 1)),
-                Vertex(position: vector_float2(0.5, -0.5), color: vector_float4(0, 1, 0, 1)),
-                Vertex(position: vector_float2(-0.5, 0.5), color: vector_float4(0, 0, 1, 1))
+                Vertex(position: vector_float2(-xFactor, -yFactor), color: vector_float4(1, 1, 0, 1)),
+                Vertex(position: vector_float2(xFactor, -yFactor), color: vector_float4(0, 1, 0, 1)),
+                Vertex(position: vector_float2(-xFactor, yFactor), color: vector_float4(0, 0, 1, 1))
             ]
 
             let rectangle2 = [
-                Vertex(position: vector_float2(0.5, -0.5), color: vector_float4(0, 1, 0, 1)),
-                Vertex(position: vector_float2(0.5, 0.5), color: vector_float4(0, 0, 1, 1)),
-                Vertex(position: vector_float2(-0.5, 0.5), color: vector_float4(1, 0, 0, 1))
+                Vertex(position: vector_float2(xFactor, -yFactor), color: vector_float4(0, 1, 0, 1)),
+                Vertex(position: vector_float2(xFactor, yFactor), color: vector_float4(1, 0, 1, 1)),
+                Vertex(position: vector_float2(-xFactor, yFactor), color: vector_float4(0, 0, 1, 1))
             ]
 
             // Append rectangle vertices to the vertexData array
@@ -127,10 +130,10 @@ class MandelbrotRenderer: NSObject, MTKViewDelegate {
         mtlVertexDescriptor.attributes[0].bufferIndex = 0
         
         mtlVertexDescriptor.attributes[1].format = MTLVertexFormat.float4
-        mtlVertexDescriptor.attributes[1].offset = 8
+        mtlVertexDescriptor.attributes[1].offset = 16
         mtlVertexDescriptor.attributes[1].bufferIndex = 0
         
-        mtlVertexDescriptor.layouts[0].stride = 24
+        mtlVertexDescriptor.layouts[0].stride = 32
         mtlVertexDescriptor.layouts[0].stepRate = 1
         mtlVertexDescriptor.layouts[0].stepFunction = MTLVertexStepFunction.perVertex
         
@@ -175,8 +178,15 @@ class MandelbrotRenderer: NSObject, MTKViewDelegate {
         uniforms?[0].viewMatrix = matrix4x4_translation(0.0, 0.0, 8.0)
         uniforms?[0].projectionMatrix = projectionMatrix
         
-        let translation0 = matrix4x4_translation(0.0, -2.0, 0.0)
+        let translation0 = matrix4x4_translation(0.0, 0.0, 0.0)
         uniforms?[0].modelMatrix = translation0
+        if aspectRatio > 1 {
+            uniforms?[0].dimension = vector_float2(aspectRatio * 2, 2)
+        }
+        else {
+            uniforms?[0].dimension = vector_float2(2, 2 / aspectRatio)
+        }
+        uniforms?[0].drag = vector_float2(Float(drag.width), Float(drag.height))
     }
     
     private func draw(renderEncoder: MTLRenderCommandEncoder,
@@ -269,12 +279,37 @@ class MandelbrotRenderer: NSObject, MTKViewDelegate {
         /// Respond to drawable size or orientation changes here
         
         let aspect = Float(size.width) / Float(size.height)
-//        projectionMatrix = makeRightHandedPerspectiveMatrix(fovyRadians: radians_from_degrees(65), aspectRatio:aspect, nearZ: 0.1, farZ: 100.0)
-        projectionMatrix = makeLeftHandedPerspectiveMatrix(fovyRadians: radians_from_degrees(65), aspectRatio:aspect, nearZ: 0.1, farZ: 100.0)
+        aspectRatio = aspect
+        if aspect > 1 {
+            setupVertices(xFactor: aspect, yFactor: 1)
+            projectionMatrix = orthographicMatrix(left: -1 * aspect, right: 1 * aspect, bottom: -1, top: 1, near: 0.1, far: 10)
+        }
+        else {
+            setupVertices(xFactor: 1, yFactor: 1 / aspect)
+            projectionMatrix = orthographicMatrix(left: -1, right: 1, bottom: -1 / aspect, top: 1 / aspect, near: 0.1, far: 10)
+        }
     }
     
     func applyDrag(_ drag: CGSize) {
-        self.drag = drag
+        self.drag = CGSize(width: -drag.width, height: drag.height)
     }
 }
 
+func orthographicMatrix(left: Float, right: Float, bottom: Float, top: Float, near: Float, far: Float) -> float4x4 {
+    let scaleX = 2.0 / (right - left)
+    let scaleY = 2.0 / (top - bottom)
+    let scaleZ = 1.0 / (far - near)
+
+    let translationX = (right + left) / (left - right)
+    let translationY = (top + bottom) / (bottom - top)
+    let translationZ = near / (near - far)
+
+    let matrix = float4x4([
+        simd_float4(scaleX, 0, 0, 0),
+        simd_float4(0, scaleY, 0, 0),
+        simd_float4(0, 0, scaleZ, 0),
+        simd_float4(translationX, translationY, translationZ, 1)
+    ])
+
+    return matrix
+}

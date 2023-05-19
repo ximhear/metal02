@@ -69,6 +69,7 @@
 			children = (
 				9614425A2A17698E0003643B /* MandelbrotRenderer.swift */,
 				961442572A1767F90003643B /* MandelbrotView.swift */,
+				9614425C2A1773F10003643B /* MandelbrotContainer.swift */,
 			);
 			path = Mandelbrot;
 			sourceTree = "<group>";
@@ -107,7 +108,6 @@
 				961442592A1769490003643B /* Mandelbrot */,
 				965BCA102A038B32004A3494 /* SwiftUI02App.swift */,
 				9693F4C22A08C8C400ADAE4A /* FirstView.swift */,
-				9614425C2A1773F10003643B /* MandelbrotContainer.swift */,
 				965531D42A14CA5300732BBE /* Compute */,
 				965BCA122A038B32004A3494 /* ContentView.swift */,
 				9693F4B62A08B95000ADAE4A /* MetalViewController.swift */,

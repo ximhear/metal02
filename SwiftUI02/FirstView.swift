@@ -23,7 +23,7 @@ struct FirstView: View {
                 NavigationLink("compute") {
                     ComputeView()
                 }
-                NavigationLink("compute") {
+                NavigationLink("Mandelbrot") {
                     MandelbrotContainer()
                 }
             }

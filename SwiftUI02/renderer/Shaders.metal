@@ -85,6 +85,7 @@ typedef struct
 {
     float4 position [[position]];
     float4 color;
+    float2 coord;
 } ColorInOut1;
 typedef struct
 {
@@ -100,7 +101,7 @@ vertex ColorInOut1 vertexManderbrot(Vertex1 in [[stage_in]],
     float4 position = float4(in.position.x, in.position.y, 1.0, 1.0);
     out.position = uniforms.projectionMatrix * uniforms.viewMatrix * uniforms.modelMatrix * position;
     out.color = in.color;
-    
+    out.coord = in.position;
 
     return out;
 }
@@ -108,5 +109,34 @@ vertex ColorInOut1 vertexManderbrot(Vertex1 in [[stage_in]],
 fragment float4 fragmentMandelbrot(ColorInOut1 in [[stage_in]],
                                constant Uniforms & uniforms [[ buffer(1) ]])
 {
-    return in.color;
+    // Convert pixel coordinates to complex plane coordinates
+    float2 a = in.coord + uniforms.dimension * uniforms.drag;
+    float2 c = a * 3;
+//    float w = float(outputTexture.get_width());
+//    float h = float(outputTexture.get_height());
+//    if (w > h) {
+//        c = float2(a.x * w / h, a.y);
+//    }
+//    else {
+//        c = float2(a.x, a.y * h / w);
+//    }
+    
+    
+    float2 z = 0.0;
+    float iter = 0.0;
+    float maxIter = 1000.0;
+    
+    // Perform Mandelbrot set calculations
+    while (length(z) < 2.0 && iter < maxIter) {
+        z = float2(z.x*z.x - z.y*z.y, 2.0*z.x*z.y) + c;
+        iter++;
+    }
+    
+    // Write the number of iterations to the texture
+    if (iter < maxIter) {
+        iter *= 200;
+        float color = iter / maxIter;
+        return float4(color, 8.0, 0.6, 1.0);
+    }
+    return float4(1.0, 0, 0, 1.0);
 }
