@@ -26,6 +26,11 @@
 		9693F4C32A08C8C400ADAE4A /* FirstView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9693F4C22A08C8C400ADAE4A /* FirstView.swift */; };
 		9693F4C52A08D20B00ADAE4A /* Command.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9693F4C42A08D20B00ADAE4A /* Command.swift */; };
 		9693F4C72A08D2E800ADAE4A /* MetalViewContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9693F4C62A08D2E800ADAE4A /* MetalViewContainer.swift */; };
+		969D09892A20447400A644CE /* GraphMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969D09882A20447400A644CE /* GraphMenuView.swift */; };
+		969D098B2A2044CF00A644CE /* GraphContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969D098A2A2044CF00A644CE /* GraphContainer.swift */; };
+		969D098D2A20453E00A644CE /* GraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969D098C2A20453E00A644CE /* GraphView.swift */; };
+		969D09902A20464100A644CE /* GraphRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969D098E2A20464000A644CE /* GraphRenderer.swift */; };
+		969D09912A20464100A644CE /* graph.metal in Sources */ = {isa = PBXBuildFile; fileRef = 969D098F2A20464000A644CE /* graph.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,6 +56,11 @@
 		9693F4C22A08C8C400ADAE4A /* FirstView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstView.swift; sourceTree = "<group>"; };
 		9693F4C42A08D20B00ADAE4A /* Command.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Command.swift; sourceTree = "<group>"; };
 		9693F4C62A08D2E800ADAE4A /* MetalViewContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalViewContainer.swift; sourceTree = "<group>"; };
+		969D09882A20447400A644CE /* GraphMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphMenuView.swift; sourceTree = "<group>"; };
+		969D098A2A2044CF00A644CE /* GraphContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphContainer.swift; sourceTree = "<group>"; };
+		969D098C2A20453E00A644CE /* GraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphView.swift; sourceTree = "<group>"; };
+		969D098E2A20464000A644CE /* GraphRenderer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GraphRenderer.swift; sourceTree = "<group>"; };
+		969D098F2A20464000A644CE /* graph.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = graph.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +113,7 @@
 		965BCA0F2A038B32004A3494 /* SwiftUI02 */ = {
 			isa = PBXGroup;
 			children = (
+				969D09872A20444700A644CE /* Graph */,
 				9693F4C02A08BB9E00ADAE4A /* GZLog.swift */,
 				9693F4B82A08BAEC00ADAE4A /* renderer */,
 				961442592A1769490003643B /* Mandelbrot */,
@@ -138,6 +149,18 @@
 				9693F4BB2A08BB5C00ADAE4A /* ShaderTypes.h */,
 			);
 			path = renderer;
+			sourceTree = "<group>";
+		};
+		969D09872A20444700A644CE /* Graph */ = {
+			isa = PBXGroup;
+			children = (
+				969D09882A20447400A644CE /* GraphMenuView.swift */,
+				969D098A2A2044CF00A644CE /* GraphContainer.swift */,
+				969D098C2A20453E00A644CE /* GraphView.swift */,
+				969D098E2A20464000A644CE /* GraphRenderer.swift */,
+				969D098F2A20464000A644CE /* graph.metal */,
+			);
+			path = Graph;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -214,6 +237,7 @@
 				9693F4C12A08BB9E00ADAE4A /* GZLog.swift in Sources */,
 				9614425B2A17698E0003643B /* MandelbrotRenderer.swift in Sources */,
 				9693F4B32A08B82F00ADAE4A /* MetalView.swift in Sources */,
+				969D09912A20464100A644CE /* graph.metal in Sources */,
 				961442582A1767F90003643B /* MandelbrotView.swift in Sources */,
 				9693F4C52A08D20B00ADAE4A /* Command.swift in Sources */,
 				9693F4BF2A08BB5C00ADAE4A /* Renderer.swift in Sources */,
@@ -221,11 +245,15 @@
 				9693F4C72A08D2E800ADAE4A /* MetalViewContainer.swift in Sources */,
 				9693F4B72A08B95000ADAE4A /* MetalViewController.swift in Sources */,
 				965531D32A14C8AF00732BBE /* ComputeView.swift in Sources */,
+				969D09892A20447400A644CE /* GraphMenuView.swift in Sources */,
 				965531D62A14CA7F00732BBE /* ComputeEngine.swift in Sources */,
 				9614425D2A1773F20003643B /* MandelbrotContainer.swift in Sources */,
 				9693F4B52A08B89900ADAE4A /* MetalVCView.swift in Sources */,
+				969D098D2A20453E00A644CE /* GraphView.swift in Sources */,
 				9693F4C32A08C8C400ADAE4A /* FirstView.swift in Sources */,
 				965BCA112A038B32004A3494 /* SwiftUI02App.swift in Sources */,
+				969D09902A20464100A644CE /* GraphRenderer.swift in Sources */,
+				969D098B2A2044CF00A644CE /* GraphContainer.swift in Sources */,
 				965531D82A14CB5400732BBE /* compute.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

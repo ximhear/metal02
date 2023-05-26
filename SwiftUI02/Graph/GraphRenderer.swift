@@ -1,5 +1,5 @@
 //
-//  MandelbrotRenderer.swift
+//  GraphRenderer.swift
 //  Metal01
 //
 //  Created by gzonelee on 2023/04/21.
@@ -12,16 +12,19 @@ import MetalKit
 import simd
 
 // The 256 byte aligned size of our uniform structure
-fileprivate let uniformsStride = ((MemoryLayout<Uniforms>.size + 0xFF) & -0x100)
+fileprivate let uniformsStride = ((MemoryLayout<GraphUniforms>.size + 0xFF) & -0x100)
 fileprivate let alignedUniformsSize = uniformsStride
 fileprivate let maxBuffersInFlight = 3
 
 fileprivate struct Vertex {
-    var position: vector_float2
-    var color: vector_float4
+    var position: vector_float3
 }
 
-class MandelbrotRenderer: NSObject, MTKViewDelegate {
+enum GraphType {
+    case cos(dividend: Int, divider: Int = 1)
+}
+
+class GraphRenderer: NSObject, MTKViewDelegate {
     
     public var device: MTLDevice?
     var commandQueue: MTLCommandQueue?
@@ -32,17 +35,11 @@ class MandelbrotRenderer: NSObject, MTKViewDelegate {
     let inFlightSemaphore = DispatchSemaphore(value: maxBuffersInFlight)
     
     var uniformBufferOffset = 0
-    
     var uniformBufferIndex = 0
-    
     var uniformsSize = 0
-    
-    var uniforms: UnsafeMutablePointer<Uniforms>?
+    var uniforms: UnsafeMutablePointer<GraphUniforms>?
     
     var projectionMatrix: matrix_float4x4 = matrix_float4x4()
-    
-    var drag: CGSize = .zero
-    var scale: CGFloat = 1.0
     var aspectRatio: Float = 1.0
     
     private var vertexBuffer: MTLBuffer!
@@ -65,18 +62,18 @@ class MandelbrotRenderer: NSObject, MTKViewDelegate {
         guard let buffer = device.makeBuffer(length:uniformBufferSize, options:[MTLResourceOptions.storageModeShared]) else { return false }
         dynamicUniformBuffer = buffer
         
-        self.dynamicUniformBuffer!.label = "Mandelbrot UniformBuffer"
+        self.dynamicUniformBuffer!.label = "Graph UniformBuffer"
         
-        uniforms = UnsafeMutableRawPointer(dynamicUniformBuffer!.contents()).bindMemory(to:Uniforms.self, capacity:1)
+        uniforms = UnsafeMutableRawPointer(dynamicUniformBuffer!.contents()).bindMemory(to:GraphUniforms.self, capacity:1)
         
         metalKitView.depthStencilPixelFormat = MTLPixelFormat.depth32Float_stencil8
         metalKitView.colorPixelFormat = MTLPixelFormat.bgra8Unorm_srgb
         metalKitView.sampleCount = 1
         
-        let mtlVertexDescriptor = MandelbrotRenderer.buildMetalVertexDescriptor()
+        let mtlVertexDescriptor = Self.buildMetalVertexDescriptor()
         
         do {
-            pipelineState = try MandelbrotRenderer.buildRenderPipelineWithDevice(device: device,
+            pipelineState = try Self.buildRenderPipelineWithDevice(device: device,
                                                                        metalKitView: metalKitView,
                                                                        mtlVertexDescriptor: mtlVertexDescriptor)
         } catch {
@@ -93,32 +90,40 @@ class MandelbrotRenderer: NSObject, MTKViewDelegate {
         return true
     }
     
-    private func setupVertices(xFactor: Float, yFactor: Float) {
-        guard let device else { return }
-        GZLogFunc(xFactor)
-        GZLogFunc(yFactor)
-        GZLogFunc()
-        vertexData = []
-            // Create an array of rectangle vertices with position and color attributes
-            let rectangle1 = [
-                Vertex(position: vector_float2(-xFactor, -yFactor), color: vector_float4(1, 1, 0, 1)),
-                Vertex(position: vector_float2(xFactor, -yFactor), color: vector_float4(0, 1, 0, 1)),
-                Vertex(position: vector_float2(-xFactor, yFactor), color: vector_float4(0, 0, 1, 1))
-            ]
-
-            let rectangle2 = [
-                Vertex(position: vector_float2(xFactor, -yFactor), color: vector_float4(0, 1, 0, 1)),
-                Vertex(position: vector_float2(xFactor, yFactor), color: vector_float4(1, 0, 1, 1)),
-                Vertex(position: vector_float2(-xFactor, yFactor), color: vector_float4(0, 0, 1, 1))
-            ]
-
-            // Append rectangle vertices to the vertexData array
-            vertexData += rectangle1
-            vertexData += rectangle2
-
-            let vertexBufferSize = vertexData.count * MemoryLayout<Vertex>.stride
-            vertexBuffer = device.makeBuffer(bytes: vertexData, length: vertexBufferSize, options: [])
+    func gcd(_ a: Int, _ b: Int) -> Int {
+        let aa = max(a, b)
+        let bb = min(a, b)
+        let remainder = aa % bb
+        if remainder != 0 {
+            return gcd(bb, remainder)
+        } else {
+            return bb
         }
+    }
+    
+    func setupVertices(graphType: GraphType) {
+        guard let device else { return }
+        
+        vertexData = []
+        
+        if case .cos(let a, let b) = graphType {
+            let numPoints = 1000
+            // a/b와 1의 최대 공약수를 구해서 2pi를 나누면 주기가 된다.
+            // 1 == b/b, a와 b의 최대 공약수(c라고 하자)를 구한 뒤 2pi를 c/b로 나누어준다. 즉, 2pi * b / c
+            let c = gcd(a, b)
+            let factor = Float(a) / Float(b)
+            for i in 0 ... numPoints {
+                let angle = 2 * .pi * Float(b) / Float(c) * Float(i) / Float(numPoints)
+                let radius = cos(angle * factor)
+                vertexData.append(Vertex(position: radius * simd_float3(cos(angle), sin(angle), 0)))
+            }
+        }
+        
+        GZLogFunc(MemoryLayout<Vertex>.stride)
+        GZLogFunc(vertexData.count)
+        let vertexBufferSize = vertexData.count * MemoryLayout<Vertex>.stride
+        vertexBuffer = device.makeBuffer(bytes: vertexData, length: vertexBufferSize, options: [])
+    }
     
     class func buildMetalVertexDescriptor() -> MTLVertexDescriptor {
         // Create a Metal vertex descriptor specifying how vertices will by laid out for input into our render
@@ -126,15 +131,11 @@ class MandelbrotRenderer: NSObject, MTKViewDelegate {
         
         let mtlVertexDescriptor = MTLVertexDescriptor()
         
-        mtlVertexDescriptor.attributes[0].format = MTLVertexFormat.float2
+        mtlVertexDescriptor.attributes[0].format = MTLVertexFormat.float3
         mtlVertexDescriptor.attributes[0].offset = 0
         mtlVertexDescriptor.attributes[0].bufferIndex = 0
         
-        mtlVertexDescriptor.attributes[1].format = MTLVertexFormat.float4
-        mtlVertexDescriptor.attributes[1].offset = 16
-        mtlVertexDescriptor.attributes[1].bufferIndex = 0
-        
-        mtlVertexDescriptor.layouts[0].stride = 32
+        mtlVertexDescriptor.layouts[0].stride = 16
         mtlVertexDescriptor.layouts[0].stepRate = 1
         mtlVertexDescriptor.layouts[0].stepFunction = MTLVertexStepFunction.perVertex
         
@@ -148,8 +149,8 @@ class MandelbrotRenderer: NSObject, MTKViewDelegate {
         
         let library = device.makeDefaultLibrary()
         
-        let vertexFunction = library?.makeFunction(name: "vertexManderbrot")
-        let fragmentFunction = library?.makeFunction(name: "fragmentMandelbrot")
+        let vertexFunction = library?.makeFunction(name: "vertexGraph")
+        let fragmentFunction = library?.makeFunction(name: "fragmentGraph")
         
         let pipelineDescriptor = MTLRenderPipelineDescriptor()
         pipelineDescriptor.label = "RenderPipeline"
@@ -175,31 +176,22 @@ class MandelbrotRenderer: NSObject, MTKViewDelegate {
     private func updateGameState(dynamicUniformBuffer: MTLBuffer, uniformBufferOffset: Int) {
         /// Update any game state before rendering
         
-        uniforms = UnsafeMutableRawPointer(dynamicUniformBuffer.contents() + uniformBufferOffset).bindMemory(to:Uniforms.self, capacity:1)
-        uniforms?[0].viewMatrix = matrix4x4_translation(0.0, 0.0, 8.0)
+        uniforms = UnsafeMutableRawPointer(dynamicUniformBuffer.contents() + uniformBufferOffset).bindMemory(to:GraphUniforms.self, capacity:1)
         uniforms?[0].projectionMatrix = projectionMatrix
+        uniforms?[0].viewMatrix = matrix4x4_translation(0.0, 0.0, 3.0)
         
         let translation0 = matrix4x4_translation(0.0, 0.0, 0.0)
         uniforms?[0].modelMatrix = translation0
-        if aspectRatio > 1 {
-            uniforms?[0].dimension = vector_float2(aspectRatio * 2, 2)
-        }
-        else {
-            uniforms?[0].dimension = vector_float2(2, 2 / aspectRatio)
-        }
-        uniforms?[0].drag = vector_float2(Float(drag.width), Float(drag.height))
-        uniforms?[0].scale = Float(scale)
     }
     
     private func draw(renderEncoder: MTLRenderCommandEncoder,
                       viewport: MTLViewport,
                       dynamicUniformBuffer: MTLBuffer,
                       uniformBufferOffset: Int,
-                      primitiveType: MTLPrimitiveType? = nil) {
+                      primitiveType: MTLPrimitiveType = .lineStrip) {
         renderEncoder.setViewport(viewport)
-            
-            renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: vertexData.count)
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        renderEncoder.drawPrimitives(type: primitiveType, vertexStart: 0, vertexCount: vertexData.count)
     }
     
     
@@ -245,8 +237,8 @@ class MandelbrotRenderer: NSObject, MTKViewDelegate {
                     MTLViewport(originX: 0, originY: 0, width: Double(view.drawableSize.width), height: Double(view.drawableSize.height), znear: 0.0, zfar: 1.0),
                     ]
                 
-                let primitives: [MTLPrimitiveType?] = [
-                    .triangle
+                let primitives: [MTLPrimitiveType] = [
+                    .lineStrip
                 ]
                 let pipelines = [
                     pipelineState,
@@ -282,37 +274,6 @@ class MandelbrotRenderer: NSObject, MTKViewDelegate {
         
         let aspect = Float(size.width) / Float(size.height)
         aspectRatio = aspect
-        if aspect > 1 {
-            setupVertices(xFactor: aspect, yFactor: 1)
-            projectionMatrix = orthographicMatrix(left: -1 * aspect, right: 1 * aspect, bottom: -1, top: 1, near: 0.1, far: 10)
-        }
-        else {
-            setupVertices(xFactor: 1, yFactor: 1 / aspect)
-            projectionMatrix = orthographicMatrix(left: -1, right: 1, bottom: -1 / aspect, top: 1 / aspect, near: 0.1, far: 10)
-        }
+        projectionMatrix = makeLeftHandedPerspectiveMatrix(fovyRadians: radians_from_degrees(65), aspectRatio:aspect, nearZ: 0.1, farZ: 100.0)
     }
-    
-    func apply(drag: CGSize, scale: CGFloat) {
-        self.drag = CGSize(width: -drag.width, height: drag.height)
-        self.scale = scale
-    }
-}
-
-func orthographicMatrix(left: Float, right: Float, bottom: Float, top: Float, near: Float, far: Float) -> float4x4 {
-    let scaleX = 2.0 / (right - left)
-    let scaleY = 2.0 / (top - bottom)
-    let scaleZ = 1.0 / (far - near)
-
-    let translationX = (right + left) / (left - right)
-    let translationY = (top + bottom) / (bottom - top)
-    let translationZ = near / (near - far)
-
-    let matrix = float4x4([
-        simd_float4(scaleX, 0, 0, 0),
-        simd_float4(0, scaleY, 0, 0),
-        simd_float4(0, 0, scaleZ, 0),
-        simd_float4(translationX, translationY, translationZ, 1)
-    ])
-
-    return matrix
 }

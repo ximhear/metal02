@@ -26,6 +26,9 @@ struct FirstView: View {
                 NavigationLink("Mandelbrot") {
                     MandelbrotContainer()
                 }
+                NavigationLink("Graph") {
+                    GraphMenuView()
+                }
             }
         }
     }

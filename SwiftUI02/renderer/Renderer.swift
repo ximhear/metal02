@@ -12,10 +12,10 @@ import MetalKit
 import simd
 
 // The 256 byte aligned size of our uniform structure
-let uniformsPVstride = ((MemoryLayout<UniformsPV>.size + 0xFF) & -0x100)
-let uniformsMstride = ((MemoryLayout<UniformsM>.size + 0xFF) & -0x100)
-let alignedUniformsPVSize = uniformsPVstride * 4
-let alignedUniformsMSize = uniformsMstride * 2
+fileprivate let uniformsPVstride = ((MemoryLayout<UniformsPV>.size + 0xFF) & -0x100)
+fileprivate let uniformsMstride = ((MemoryLayout<UniformsM>.size + 0xFF) & -0x100)
+fileprivate let alignedUniformsPVSize = uniformsPVstride * 4
+fileprivate let alignedUniformsMSize = uniformsMstride * 2
 
 fileprivate let maxBuffersInFlight = 3
 
