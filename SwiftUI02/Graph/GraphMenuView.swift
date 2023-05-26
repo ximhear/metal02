@@ -28,6 +28,15 @@ struct GraphMenuView: View {
             NavigationLink("r=cos(3.5x)") {
                 GraphContainer(graphType: .cos(dividend: 7, divider: 2))
             }
+            NavigationLink("r=aθ(0.05)") {
+                GraphContainer(graphType: .aθ(a: 0.05))
+            }
+            NavigationLink("r=aθ(0.05, 1)") {
+                GraphContainer(graphType: .aθ(a: 0.05, z: 1))
+            }
+            NavigationLink("r=a√cos(2θ)") {
+                GraphContainer(graphType: .aSQRTcos2θ(a: 1.0))
+            }
         }
     }
 }

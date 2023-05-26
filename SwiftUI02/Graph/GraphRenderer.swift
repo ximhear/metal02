@@ -22,6 +22,8 @@ fileprivate struct Vertex {
 
 enum GraphType {
     case cos(dividend: Int, divider: Int = 1)
+    case aθ(a: Float, z: Float = 0)
+    case aSQRTcos2θ(a: Float)
 }
 
 class GraphRenderer: NSObject, MTKViewDelegate {
@@ -41,6 +43,7 @@ class GraphRenderer: NSObject, MTKViewDelegate {
     
     var projectionMatrix: matrix_float4x4 = matrix_float4x4()
     var aspectRatio: Float = 1.0
+    var rotation: Float = 0
     
     private var vertexBuffer: MTLBuffer!
     private var vertexData: [Vertex] = [] // Array of rectangle vertices
@@ -118,6 +121,26 @@ class GraphRenderer: NSObject, MTKViewDelegate {
                 vertexData.append(Vertex(position: radius * simd_float3(cos(angle), sin(angle), 0)))
             }
         }
+        else if case .aθ(let a, let z) = graphType {
+            let numPoints = 1000
+            for i in 0 ..< numPoints {
+                let angle = 8 * .pi * Float(i) / Float(numPoints)
+                let radius = angle * a
+                vertexData.append(Vertex(position: radius * simd_float3(cos(angle), sin(angle), z)))
+            }
+        }
+        else if case .aSQRTcos2θ(let a) = graphType {
+            let numPoints = 1000
+            for i in 0 ... numPoints {
+                let angle = 2 * .pi * Float(i) / Float(numPoints)
+//                let radius = a * sqrt(cos(2 * angle))
+//                vertexData.append(Vertex(position: radius * simd_float3(cos(angle), sin(angle), 0)))
+                
+                let x = a * cos(angle) / (1 + pow(sin(angle), 2))
+                let y = a * cos(angle) * sin(angle) / (1 + pow(sin(angle), 2))
+                vertexData.append(Vertex(position: simd_float3(x, y, 0)))
+            }
+        }
         
         GZLogFunc(MemoryLayout<Vertex>.stride)
         GZLogFunc(vertexData.count)
@@ -180,8 +203,9 @@ class GraphRenderer: NSObject, MTKViewDelegate {
         uniforms?[0].projectionMatrix = projectionMatrix
         uniforms?[0].viewMatrix = matrix4x4_translation(0.0, 0.0, 3.0)
         
-        let translation0 = matrix4x4_translation(0.0, 0.0, 0.0)
+        let translation0 = matrix4x4_rotation(radians: rotation , axis: .init(x: 0, y: 1, z: 0))
         uniforms?[0].modelMatrix = translation0
+        rotation += 0.010
     }
     
     private func draw(renderEncoder: MTLRenderCommandEncoder,
