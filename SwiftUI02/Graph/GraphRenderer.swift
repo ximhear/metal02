@@ -26,6 +26,27 @@ enum GraphType {
     case aSQRTcos2θ(a: Float)
 }
 
+enum RotationType: CustomStringConvertible {
+    case x
+    case y
+    case z
+    
+    var description: String {
+        switch self {
+        case .x:
+            return "X"
+        case .y:
+            return "Y"
+        case .z:
+            return "Z"
+        }
+    }
+    
+    func hello() {
+        print("\(self)")
+    }
+}
+
 class GraphRenderer: NSObject, MTKViewDelegate {
     
     public var device: MTLDevice?
@@ -44,6 +65,7 @@ class GraphRenderer: NSObject, MTKViewDelegate {
     var projectionMatrix: matrix_float4x4 = matrix_float4x4()
     var aspectRatio: Float = 1.0
     var rotation: Float = 0
+    var rotationType: RotationType?
     
     private var vertexBuffer: MTLBuffer!
     private var vertexData: [Vertex] = [] // Array of rectangle vertices
@@ -102,6 +124,11 @@ class GraphRenderer: NSObject, MTKViewDelegate {
         } else {
             return bb
         }
+    }
+    
+    func setRotationType(_ type: RotationType?) {
+        rotation = 0
+        rotationType = type
     }
     
     func setupVertices(graphType: GraphType) {
@@ -203,8 +230,18 @@ class GraphRenderer: NSObject, MTKViewDelegate {
         uniforms?[0].projectionMatrix = projectionMatrix
         uniforms?[0].viewMatrix = matrix4x4_translation(0.0, 0.0, 3.0)
         
-        let translation0 = matrix4x4_rotation(radians: rotation , axis: .init(x: 0, y: 1, z: 0))
-        uniforms?[0].modelMatrix = translation0
+        let rotationMatrix: matrix_float4x4
+        switch rotationType {
+        case .none:
+            rotationMatrix = .init(diagonal: .init(x: 1, y: 1, z: 1, w: 1))
+        case .some(.x):
+            rotationMatrix = matrix4x4_rotation(radians: rotation , axis: .init(x: 1, y: 0, z: 0))
+        case .some(.y):
+            rotationMatrix = matrix4x4_rotation(radians: rotation , axis: .init(x: 0, y: 1, z: 0))
+        case .some(.z):
+            rotationMatrix = matrix4x4_rotation(radians: rotation , axis: .init(x: 0, y: 0, z: 1))
+        }
+        uniforms?[0].modelMatrix = rotationMatrix
         rotation += 0.010
     }
     

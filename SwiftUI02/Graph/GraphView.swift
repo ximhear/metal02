@@ -10,13 +10,13 @@ import MetalKit
 
 struct GraphView: UIViewRepresentable {
     @State var graphType: GraphType
+    @Binding var rotationType: RotationType?
     
     class Coordinator: NSObject {
         var renderer: GraphRenderer?
         var metalView: MTKView?
         
         override init() {
-            GZLogFunc()
             renderer = GraphRenderer()
             super.init()
         }
@@ -39,12 +39,14 @@ struct GraphView: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: MTKView, context: Context) {
+        GZLogFunc(rotationType)
+        context.coordinator.renderer?.setRotationType(rotationType)
         context.coordinator.renderer?.setupVertices(graphType: graphType)
     }
 }
 
 struct GraphView_Previews: PreviewProvider {
     static var previews: some View {
-        GraphView(graphType: .cos(dividend: 37, divider: 9))
+        GraphView(graphType: .cos(dividend: 37, divider: 9), rotationType: .constant(.x))
     }
 }
