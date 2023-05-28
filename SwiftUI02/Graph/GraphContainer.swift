@@ -41,6 +41,6 @@ struct GraphContainer: View {
 
 struct GraphContainer_Previews: PreviewProvider {
     static var previews: some View {
-        GraphContainer(graphType: .cos(dividend: 7, divider: 8), rotationType: .y)
+        GraphContainer(graphType: .cos(dividend: 9, divider: 8), rotationType: .none)
     }
 }

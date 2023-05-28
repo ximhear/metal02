@@ -136,10 +136,10 @@ class GraphRenderer: NSObject, MTKViewDelegate {
         vertexData = []
         
         if case .cos(let a, let b) = graphType {
-            let numPoints = 1000
             // a/b와 1의 최대 공약수를 구해서 2pi를 나누면 주기가 된다.
             // 1 == b/b, a와 b의 최대 공약수(c라고 하자)를 구한 뒤 2pi를 c/b로 나누어준다. 즉, 2pi * b / c
             let c = gcd(a, b)
+            let numPoints = Int64(1000 * Float(b) / Float(c))
             let factor = Float(a) / Float(b)
             for i in 0 ... numPoints {
                 let angle = 2 * .pi * Float(b) / Float(c) * Float(i) / Float(numPoints)
