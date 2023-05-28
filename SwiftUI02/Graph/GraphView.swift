@@ -10,7 +10,7 @@ import MetalKit
 
 struct GraphView: UIViewRepresentable {
     @State var graphType: GraphType
-    @Binding var rotationType: RotationType?
+    @Binding var rotationType: RotationType
     
     class Coordinator: NSObject {
         var renderer: GraphRenderer?

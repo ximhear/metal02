@@ -9,7 +9,7 @@ import SwiftUI
 
 struct GraphContainer: View {
     @State var graphType: GraphType
-    @State var rotationType: RotationType?
+    @State var rotationType: RotationType = .none
     
     var body: some View {
         VStack {
@@ -17,7 +17,7 @@ struct GraphContainer: View {
                 GraphView(graphType: graphType, rotationType: $rotationType)
                     .frame(width: proxy.size.width, height: proxy.size.height)
             }
-            Text("Rotation : \(rotationType?.description ?? "none")")
+            Text("Rotation : \(String(describing: rotationType))")
                 .font(.title)
                 .foregroundColor(.red)
             HStack {

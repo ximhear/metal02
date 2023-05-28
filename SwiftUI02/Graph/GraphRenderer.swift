@@ -30,6 +30,7 @@ enum RotationType: CustomStringConvertible {
     case x
     case y
     case z
+    case none
     
     var description: String {
         switch self {
@@ -39,11 +40,9 @@ enum RotationType: CustomStringConvertible {
             return "Y"
         case .z:
             return "Z"
+        case .none:
+            return "none"
         }
-    }
-    
-    func hello() {
-        print("\(self)")
     }
 }
 
@@ -231,15 +230,20 @@ class GraphRenderer: NSObject, MTKViewDelegate {
         uniforms?[0].viewMatrix = matrix4x4_translation(0.0, 0.0, 3.0)
         
         let rotationMatrix: matrix_float4x4
-        switch rotationType {
-        case .none:
+        if let rotationType {
+            switch rotationType {
+            case .none:
+                rotationMatrix = .init(diagonal: .init(x: 1, y: 1, z: 1, w: 1))
+            case .x:
+                rotationMatrix = matrix4x4_rotation(radians: rotation , axis: .init(x: 1, y: 0, z: 0))
+            case .y:
+                rotationMatrix = matrix4x4_rotation(radians: rotation , axis: .init(x: 0, y: 1, z: 0))
+            case .z:
+                rotationMatrix = matrix4x4_rotation(radians: rotation , axis: .init(x: 0, y: 0, z: 1))
+            }
+        }
+        else {
             rotationMatrix = .init(diagonal: .init(x: 1, y: 1, z: 1, w: 1))
-        case .some(.x):
-            rotationMatrix = matrix4x4_rotation(radians: rotation , axis: .init(x: 1, y: 0, z: 0))
-        case .some(.y):
-            rotationMatrix = matrix4x4_rotation(radians: rotation , axis: .init(x: 0, y: 1, z: 0))
-        case .some(.z):
-            rotationMatrix = matrix4x4_rotation(radians: rotation , axis: .init(x: 0, y: 0, z: 1))
         }
         uniforms?[0].modelMatrix = rotationMatrix
         rotation += 0.010
